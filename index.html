@@ -315,7 +315,7 @@
             const expectedCode = partnerConfig[currentUser].code;
             const errorMsg = document.getElementById("error-msg");
 
-            if (input === expectedCode || input.length >= 3) {
+            if (input === expectedCode) {
                 errorMsg.classList.add("hidden");
                 transitionStep("stage-2", "stage-3");
                 loadQuestion();
@@ -323,6 +323,7 @@
                 errorMsg.classList.remove("hidden");
             }
         }
+
 
         function loadQuestion() {
             if (currentQuestionIndex < questionsList.length) {
