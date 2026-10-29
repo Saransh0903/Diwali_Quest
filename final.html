@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Family Diwali Quest 🪔</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #2D0B12;
+            color: #FFF8E8;
+            background-image: radial-gradient(rgba(255, 215, 0, 0.15) 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+
+        .glass-card {
+            background: rgba(45, 11, 18, 0.95);
+            backdrop-filter: blur(16px);
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .step-transition {
+            transition: all 0.4s ease-in-out;
+        }
+        .step-hidden {
+            opacity: 0;
+            transform: translateY(20px) scale(0.97);
+            pointer-events: none;
+            display: none;
+        }
+        .step-active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            display: block;
+        }
+
+        .gift-item-selected {
+            border-color: #FFD700 !important;
+            background-color: rgba(255, 215, 0, 0.2) !important;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #FFD700;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-4 sm:p-6">
+
+    <!-- Header Banner -->
+    <header class="w-full max-w-lg text-center py-4">
+        <div class="text-4xl mb-1 animate-bounce">🪔</div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-[#FFD700] tracking-wide uppercase">Tiwari Family Quest</h1>
+        <p class="text-sm font-bold text-amber-200 mt-1">Diwali Edition • 2026</p>
+    </header>
+
+    <!-- Main Game Container -->
+    <main class="w-full max-w-lg my-auto">
+
+        <!-- STAGE 1: Player Selection -->
+        <div id="stage-1" class="glass-card rounded-2xl p-6 step-transition step-active">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-amber-300 mb-2">Identify Yourself</h2>
+                <p class="text-base text-amber-100/90 leading-relaxed">Select your name to unlock your quest line for tonight.</p>
+            </div>
+            
+            <div class="space-y-5">
+                <div>
+                    <label class="block text-sm font-bold uppercase tracking-wider text-amber-300 mb-2">Select Your Name:</label>
+                    <select id="player-select" class="w-full bg-[#1A050A] border-2 border-amber-500/50 rounded-xl px-4 py-4 text-amber-100 focus:outline-none focus:border-amber-400 text-lg font-bold">
+                        <option value="" disabled selected>-- Tap to choose --</option>
+                        <option value="Shri Sunil Tiwari">Shri Sunil Tiwari</option>
+                        <option value="Smt. Rekha Tiwari">Smt. Rekha Tiwari</option>
+                        <option value="Soumya">Soumya</option>
+                        <option value="Shweta">Shweta</option>
+                        <option value="Kritika">Kritika</option>
+                    </select>
+                </div>
+                <button onclick="startStage2()" class="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-[#2D0B12] font-extrabold text-xl py-4 px-6 rounded-xl shadow-xl transition-all transform active:scale-95 tracking-wide">
+                    START QUEST 🚀
+                </button>
+            </div>
+        </div>
+
+        <!-- STAGE 2: Social Call Verification & Partner Matcher -->
+        <div id="stage-2" class="glass-card rounded-2xl p-6 step-transition step-hidden">
+            <div class="text-center mb-4">
+                <span class="bg-amber-500/20 text-amber-300 text-xs px-3 py-1 rounded-full uppercase tracking-widest font-bold border border-amber-400/40">Task 1: Video Call Verification</span>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-amber-300 mb-2 text-center">Find Your Partner</h2>
+            <p class="text-sm text-amber-100/90 mb-6 text-center leading-relaxed font-medium">
+                This quest cannot be solved alone! Tap below to discover who you must <strong>Video Call</strong> to get your passcode!
+            </p>
+
+            <div class="bg-[#1A050A] border-2 border-amber-500/30 rounded-xl p-5 mb-6 text-center">
+                <div id="match-status" class="text-base text-amber-200 font-bold mb-3">Tap below to scan for your assigned partner:</div>
+                <button onclick="runPartnerMatcher()" id="match-btn" class="bg-amber-600 hover:bg-amber-500 text-amber-950 text-base font-extrabold py-3 px-6 rounded-xl transition-all shadow-md">
+                    🎲 Find My Video Call Partner
+                </button>
+                <div id="partner-reveal" class="hidden mt-3 font-extrabold text-amber-300 text-base"></div>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs uppercase tracking-wider text-amber-300 mb-2 font-bold">Enter Secret Passcode (from video call):</label>
+                    <input type="text" id="passcode-input" placeholder="e.g. KRI3" class="w-full bg-[#1A050A] border-2 border-amber-500/50 rounded-xl px-4 py-3.5 text-amber-100 uppercase tracking-widest text-center font-extrabold focus:outline-none focus:border-amber-400 text-lg">
+                </div>
+                <button onclick="verifyPasscode()" class="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-[#2D0B12] font-extrabold text-lg py-4 px-6 rounded-xl shadow-xl transition-all transform active:scale-95">
+                    UNLOCK QUESTIONS 🔓
+                </button>
+                <p id="error-msg" class="text-red-400 text-xs text-center hidden font-bold">Incorrect passcode! Please check with your partner on video call.</p>
+            </div>
+        </div>
+
+        <!-- STAGE 3: Interactive Quiz Questions -->
+        <div id="stage-3" class="glass-card rounded-2xl p-6 step-transition step-hidden">
+            <div class="flex justify-between items-center mb-4">
+                <span id="quiz-progress-text" class="text-xs text-amber-300 font-extrabold uppercase tracking-widest">Question 1 of 8</span>
+                <span id="user-badge" class="bg-amber-500/20 text-amber-300 text-xs px-3 py-1 rounded-full font-bold border border-amber-400/30"></span>
+            </div>
+            
+            <div class="mb-6">
+                <h3 id="question-title" class="text-lg sm:text-xl font-bold text-amber-200 mb-3 leading-snug"></h3>
+                <div id="options-container" class="space-y-3 mt-4">
+                    <!-- MCQ Options dynamically populated -->
+                </div>
+            </div>
+
+            <button onclick="handleNextQuestion()" class="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-[#2D0B12] font-extrabold text-lg py-3.5 px-6 rounded-xl shadow-xl transition-all transform active:scale-95">
+                NEXT QUEST ➡️
+            </button>
+        </div>
+
+        <!-- STAGE 4: The Psychology Trap Warning Screen -->
+        <div id="stage-4" class="glass-card rounded-2xl p-6 text-center step-transition step-hidden">
+            <div class="text-5xl mb-3 animate-pulse">⚠️</div>
+            <h2 class="text-2xl font-extrabold text-red-400 mb-3 tracking-wide">THE DIWALI RULE!</h2>
+            
+            <div class="bg-red-950/60 border-2 border-red-500/50 rounded-xl p-4 mb-6 text-left space-y-3">
+                <p class="text-base text-amber-100 font-bold leading-relaxed">
+                    🎉 You passed all the questions! Now you get to choose your Diwali Gift!
+                </p>
+                <p class="text-sm text-red-300 font-extrabold bg-red-900/50 p-3 rounded-lg border border-red-500/30">
+                    🚨 CRITICAL WARNING: If you select the EXACT SAME gift as any other family member, BOTH of you get NO GIFT!
+                </p>
+                <p class="text-xs text-amber-200/80 italic">
+                    Hint: You might want to call or text others before finalizing your choice... 😉
+                </p>
+            </div>
+
+            <button onclick="goToGiftVault()" class="w-full bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-400 hover:to-yellow-500 text-[#2D0B12] font-extrabold text-lg py-4 px-6 rounded-xl shadow-xl transition-all transform active:scale-95">
+                OPEN GIFT VAULT 🎁
+            </button>
+        </div>
+
+        <!-- STAGE 5: The Gift Vault Selection Menu -->
+        <div id="stage-5" class="glass-card rounded-2xl p-5 step-transition step-hidden">
+            <div class="text-center mb-4">
+                <h2 class="text-2xl font-extrabold text-amber-300">The Gift Vault</h2>
+                <p class="text-xs text-amber-100/80 mt-1 font-semibold">Select 1 option below (Budget: ₹4,000 per person)</p>
+            </div>
+
+            <!-- Scrollable List of Text Selection Options -->
+            <div id="gift-list-container" class="space-y-2.5 mb-4 max-h-[50vh] overflow-y-auto pr-1">
+                <!-- Dynamically Populated Gift Options -->
+            </div>
+
+            <!-- Custom Gift Option -->
+            <div class="mb-4 bg-[#1A050A] p-3 rounded-xl border border-amber-500/30">
+                <label class="block text-xs font-bold text-amber-300 mb-1">Or have another custom wish under ₹4,000?</label>
+                <input type="text" id="custom-gift-input" placeholder="Type custom wish here..." class="w-full bg-[#2D0B12] border border-amber-500/40 rounded-lg px-3 py-2 text-amber-100 focus:outline-none focus:border-amber-400 text-xs">
+            </div>
+
+            <button onclick="submitFinalChoice()" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-extrabold text-base py-3.5 px-6 rounded-xl shadow-xl transition-all transform active:scale-95">
+                SUBMIT CHOICE TO SARANSH 📲
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full text-center py-3 text-xs text-amber-200/60 font-bold">
+        Tiwari Family Diwali Celebration 2026 🪔
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        let currentUser = "";
+        let currentQuestionIndex = 0;
+        let selectedOption = "";
+        let selectedGiftName = "";
+
+        const partnerConfig = {
+            "Shri Sunil Tiwari": { partner: "Saransh", code: "DADY9" },
+            "Smt. Rekha Tiwari": { partner: "Kritika or Shweta", code: "MAMMI7" },
+            "Soumya": { partner: "Shweta", code: "BHAIYA3" },
+            "Shweta": { partner: "Soumya & Smt. Rekha Tiwari", code: "BHABHI5" },
+            "Kritika": { partner: "Smt. Rekha Tiwari & Shri Sunil Tiwari", code: "KRI3" }
+        };
+
+        const questionsList = [
+            {
+                title: "In Bhaiya-Bhabhi's wedding, when is Saransh reaching home?",
+                options: ["3 Dec", "4 Dec", "5 Dec", "6 Dec"],
+                correct: "6 Dec"
+            },
+            {
+                title: "What is the society name of Kritika in Pune?",
+                options: ["Blue Ridge Tower A", "Joyville Shapoorji Pallonji", "YashOne Maan Hinjewadi", "Green Olive Apartments"],
+                correct: "Joyville Shapoorji Pallonji"
+            },
+            {
+                title: "Which divine figure cursed Ravana that his head would split into seven pieces if he forced an unwilling woman (after Rambha's incident)?",
+                options: ["Nalakubara", "Kubera", "Lord Brahma", "Lord Shiva"],
+                correct: "Nalakubara"
+            },
+            {
+                title: "What color dress was Shweta wearing when Mammi-Dady Ji met her for the first time in Kolkata?",
+                options: ["Blue", "Black", "Red", "Green"],
+                correct: "Black"
+            },
+            {
+                title: "What kind of movies does Dady Ji watch these days?",
+                options: ["Bollywood", "Tollywood", "Hollywood", "Bhojpuri"],
+                correct: "Bhojpuri"
+            },
+            {
+                title: "What is the highest score of Rohit Sharma in one-day international cricket?",
+                options: ["198", "212", "264", "273"],
+                correct: "264"
+            },
+            {
+                title: "What phone does Soumya use right now?",
+                options: ["iPhone 15", "iPhone 16", "iPhone 14", "iPhone 14 Plus"],
+                correct: "iPhone 15"
+            }
+        ];
+
+        const giftsList = [
+            "Pure Bengali Saree",
+            "Fitness Smart Watch",
+            "Pure Leather Wallet",
+            "Premium Linen Shirt",
+            "Customised Leather Shoes",
+            "1-Month AI Subscription (ChatGPT Plus / Claude Pro)",
+            "DJ in Wedding Sangeet Night (Sponsored by Saransh)",
+            "Haldi Function Outfit",
+            "Titan Brand Watch",
+            "Hair Straightener / Styling Kit",
+            "5-Star Spa & Full Body Massage",
+            "Two-Way Train/Bus Tickets to Nainital & Kainchi Dham",
+            "Two-Way Tickets/Pass to Bhimashankar Jyotirling",
+            "Pure Silver Necklace",
+            "Pure Silver Earrings"
+        ];
+
+        function transitionStep(hideId, showId) {
+            const hideEl = document.getElementById(hideId);
+            const showEl = document.getElementById(showId);
+            
+            hideEl.classList.remove('step-active');
+            hideEl.classList.add('step-hidden');
+
+            setTimeout(() => {
+                showEl.classList.remove('step-hidden');
+                showEl.classList.add('step-active');
+            }, 300);
+        }
+
+        function startStage2() {
+            const select = document.getElementById("player-select");
+            currentUser = select.value;
+            if (!currentUser) {
+                alert("Please select your name first!");
+                return;
+            }
+            transitionStep("stage-1", "stage-2");
+        }
+
+        function runPartnerMatcher() {
+            const btn = document.getElementById("match-btn");
+            const status = document.getElementById("match-status");
+            const reveal = document.getElementById("partner-reveal");
+            
+            btn.disabled = true;
+            btn.classList.add("opacity-50");
+            
+            let counter = 0;
+            const interval = setInterval(() => {
+                const randomNames = ["Saransh", "Kritika", "Shweta", "Soumya", "Smt. Rekha Tiwari"];
+                status.innerHTML = `Scanning... ${randomNames[counter % randomNames.length]}`;
+                counter++;
+            }, 150);
+
+            setTimeout(() => {
+                clearInterval(interval);
+                const config = partnerConfig[currentUser];
+                status.innerHTML = "✅ Partner Match Found!";
+                reveal.innerHTML = `📞 Video Call <strong>${config.partner}</strong> right now for passcode!<br><span class='text-xs text-amber-200/70'>(Test Hint: <code>${config.code}</code>)</span>`;
+                reveal.classList.remove("hidden");
+                btn.style.display = "none";
+            }, 1500);
+        }
+
+        function verifyPasscode() {
+            const input = document.getElementById("passcode-input").value.trim().toUpperCase();
+            const expectedCode = partnerConfig[currentUser].code;
+            const errorMsg = document.getElementById("error-msg");
+
+            if (input === expectedCode || input.length >= 3) {
+                errorMsg.classList.add("hidden");
+                transitionStep("stage-2", "stage-3");
+                loadQuestion();
+            } else {
+                errorMsg.classList.remove("hidden");
+            }
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex < questionsList.length) {
+                const q = questionsList[currentQuestionIndex];
+                document.getElementById("quiz-progress-text").innerHTML = `Question ${currentQuestionIndex + 1} of ${questionsList.length}`;
+                document.getElementById("user-badge").innerHTML = currentUser;
+                document.getElementById("question-title").innerHTML = q.title;
+                selectedOption = "";
+
+                const container = document.getElementById("options-container");
+                container.innerHTML = "";
+                q.options.forEach(opt => {
+                    const btn = document.createElement("button");
+                    btn.className = "w-full text-left bg-[#1A050A] border border-amber-500/40 rounded-xl p-3.5 text-amber-100 font-bold text-sm hover:border-amber-400 transition-all flex justify-between items-center";
+                    btn.innerHTML = `<span>${opt}</span> <span class="radio-dot text-amber-400 font-extrabold"></span>`;
+                    btn.onclick = () => {
+                        document.querySelectorAll("#options-container button").forEach(b => {
+                            b.classList.remove("border-amber-400", "bg-amber-900/40");
+                            b.querySelector(".radio-dot").innerHTML = "";
+                        });
+                        btn.classList.add("border-amber-400", "bg-amber-900/40");
+                        btn.querySelector(".radio-dot").innerHTML = "✓";
+                        selectedOption = opt;
+                    };
+                    container.appendChild(btn);
+                });
+            } else {
+                transitionStep("stage-3", "stage-4");
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
+        }
+
+        function handleNextQuestion() {
+            if (!selectedOption) {
+                alert("Please select an answer to proceed!");
+                return;
+            }
+            const q = questionsList[currentQuestionIndex];
+            if (selectedOption !== q.correct) {
+                alert(`Wrong answer! Check with your family members and try again.`);
+                return;
+            }
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        function goToGiftVault() {
+            renderGiftList();
+            transitionStep("stage-4", "stage-5");
+        }
+
+        function renderGiftList() {
+            const container = document.getElementById("gift-list-container");
+            container.innerHTML = "";
+            giftsList.forEach(giftName => {
+                const item = document.createElement("div");
+                item.className = "gift-item bg-[#1A050A] border border-amber-500/30 rounded-xl p-3.5 cursor-pointer transition-all flex justify-between items-center hover:border-amber-400";
+                item.onclick = () => selectGiftItem(item, giftName);
+                item.innerHTML = `
+                    <span class="text-sm font-bold text-amber-100">${giftName}</span>
+                    <span class="item-check text-xs font-bold text-amber-400 px-2.5 py-1 rounded-lg bg-amber-950/60 border border-amber-500/30">Select</span>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function selectGiftItem(itemElement, giftName) {
+            document.querySelectorAll(".gift-item").forEach(i => {
+                i.classList.remove("gift-item-selected");
+                i.querySelector(".item-check").innerHTML = "Select";
+                i.querySelector(".item-check").className = "item-check text-xs font-bold text-amber-400 px-2.5 py-1 rounded-lg bg-amber-950/60 border border-amber-500/30";
+            });
+            itemElement.classList.add("gift-item-selected");
+            const check = itemElement.querySelector(".item-check");
+            check.innerHTML = "✓ Selected";
+            check.className = "item-check text-xs font-bold text-[#2D0B12] bg-amber-400 px-2.5 py-1 rounded-lg font-extrabold";
+            selectedGiftName = giftName;
+        }
+
+        function submitFinalChoice() {
+            const customWish = document.getElementById("custom-gift-input").value.trim();
+            const finalChoice = customWish ? `Custom Wish: ${customWish}` : selectedGiftName;
+
+            if (!finalChoice) {
+                alert("Please select a gift from the list or write a custom wish!");
+                return;
+            }
+
+            const message = encodeURIComponent(`🪔 Hi Saransh! I unlocked the Tiwari Family Diwali Vault!\n\n👤 Name: ${currentUser}\n🎁 Selected Gift: ${finalChoice}\n\nHappy Diwali! ✨`);
+window.location.href = `https://wa.me/918602171887?text=${message}`;
+
+        }
+    </script>
+</body>
+</html>
